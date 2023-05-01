@@ -136,6 +136,8 @@ godot::String run_command(const godot::String &cmd_file, const godot::String &st
 
 #else
 
+#include <unistd.h>
+
 godot::String run_command(const godot::String &cmd_file, const godot::String &stdin_values, const std::vector<godot::String> &args) {
 	int parentToChild[2];
 	int childToParent[2];
@@ -168,17 +170,17 @@ godot::String run_command(const godot::String &cmd_file, const godot::String &st
 			if (close(childToParent[0]) != 0) {
 				printf("close !STDOUT failed");
 			}
-			std::vector<CharString> args;
+			std::vector<godot::CharString> s_args;
 			std::vector<const char *> c_args;
 			// Program
 			godot::CharString arg = cmd_file.utf8();
 			c_args.push_back(arg.get_data());
-			args.push_back(arg);
+			s_args.push_back(arg);
 			// Args
-			for (const godot::String &arg : args) {
-				arg = args.utf8();
+			for (const godot::String &iterator_arg : args) {
+				arg = iterator_arg.utf8();
 				c_args.push_back(arg.get_data());
-				args.push_back(arg);
+				s_args.push_back(arg);
 			}
 			c_args.push_back(nullptr);
 			execvp(c_args[0], const_cast<char *const *>(c_args.data()));
@@ -195,7 +197,7 @@ godot::String run_command(const godot::String &cmd_file, const godot::String &st
 	godot::CharString utf8_stdin = stdin_values.utf8();
 	ssize_t written = 0;
 	ssize_t last_written = 0;
-	while (written < utf8_stdint.length()) {
+	while (written < utf8_stdin.length()) {
 		last_written = write(parentToChild[1], utf8_stdin.get_data() + written, utf8_stdin.length() - written);
 		if (last_written >= 0) {
 			written += last_written;
@@ -228,7 +230,7 @@ godot::String run_command(const godot::String &cmd_file, const godot::String &st
 	buffer.resize(total_bytes_read);
 	int status;
 	waitpid(pid, &status, 0);
-	printf("'%s' exit code: %u\n", cmd_file.utf8(), status);
+	printf("'%s' exit code: %u\n", cmd_file.utf8().get_data(), status);
 	return godot::String::utf8(&buffer[0], buffer.size());
 }
 

@@ -712,7 +712,7 @@ bool GitPlugin::_initialize(const godot::String &project_path) {
 		// Remote URL
 		std::string remote_url = std::string(git_remote_url(remote_object.get()));
 		godot::UtilityFunctions::print("Found remote at " + godot::String(remote_url.c_str()));
-		if (remote_url.compare(0, std::string("https://").length(), std::string("https://"))) { // is https
+		if (remote_url.compare(0, std::string("https://").length(), std::string("https://")) == 0) { // is https
 			remote_url = remote_url.substr(std::string("https://").length());
 			remote_url = remote_url.substr(0, remote_url.find("/"));
 			godot::UtilityFunctions::print("Remote Host is: " + godot::String(remote_url.c_str()));
