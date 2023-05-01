@@ -154,10 +154,11 @@ godot::String run_command(const godot::String &cmd_file, const godot::String &st
 	}
 
 	switch (pid = fork()) {
-		case -1:
+		case -1: {
 			printf("Fork failed");
 			return godot::String{};
-		case 0:
+		}
+		case 0: {
 			if (dup2(parentToChild[0], STDIN_FILENO) == -1) {
 				printf("dup2 STDIN failed");
 			}
@@ -175,18 +176,20 @@ godot::String run_command(const godot::String &cmd_file, const godot::String &st
 			// Program
 			godot::CharString arg = cmd_file.utf8();
 			c_args.push_back(arg.get_data());
-			s_args.push_back(arg);
+			s_args.push_back(std::move(arg));
 			// Args
 			for (const godot::String &iterator_arg : args) {
-				arg = iterator_arg.utf8();
-				c_args.push_back(arg.get_data());
-				s_args.push_back(arg);
+				godot::CharString arg2 = iterator_arg.utf8();
+				c_args.push_back(arg2.get_data());
+				s_args.push_back(std::move(arg2));
 			}
 			c_args.push_back(nullptr);
 			execvp(c_args[0], const_cast<char *const *>(c_args.data()));
 			abort();
-		default:
-			break;
+		}
+		default: {
+			abort();
+		}
 	}
 	if (close(parentToChild[0]) != 0) {
 		printf("close p!STDIN failed");
@@ -210,7 +213,7 @@ godot::String run_command(const godot::String &cmd_file, const godot::String &st
 	ssize_t total_bytes_read = 0;
 	ssize_t bytes_read = 0;
 	for (;;) {
-		bytes_read = read(childToParent[READ_FD], &buffer[0] + total_bytes_read, buffer.size() - total_bytes_read);
+		bytes_read = read(childToParent[0], &buffer[0] + total_bytes_read, buffer.size() - total_bytes_read);
 
 		if (bytes_read > 0) {
 			total_bytes_read += bytes_read;

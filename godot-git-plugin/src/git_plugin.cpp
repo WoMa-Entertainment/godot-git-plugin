@@ -74,11 +74,16 @@ bool GitPlugin::check_errors(int error, godot::String function, godot::String fi
 }
 
 void GitPlugin::_set_credentials(const godot::String &username, const godot::String &password, const godot::String &ssh_public_key_path, const godot::String &ssh_private_key_path, const godot::String &ssh_passphrase) {
-	creds.username = username;
-	creds.password = password;
-	creds.ssh_public_key_path = ssh_public_key_path;
-	creds.ssh_private_key_path = ssh_private_key_path;
-	creds.ssh_passphrase = ssh_passphrase;
+	if (this->creds_from_git_cred_manager && creds.username.nocasecmp_to(username) == 0 && creds.password.is_empty() && !password.is_empty()) {
+		// just reset status, do nothing to overwrite credentials
+	} else {
+		creds.username = username;
+		creds.password = password;
+		creds.ssh_public_key_path = ssh_public_key_path;
+		creds.ssh_private_key_path = ssh_private_key_path;
+		creds.ssh_passphrase = ssh_passphrase;
+	}
+	this->creds_from_git_cred_manager = false;
 }
 
 void GitPlugin::_discard_file(const godot::String &file_path) {
@@ -736,6 +741,7 @@ bool GitPlugin::_initialize(const godot::String &project_path) {
 			if (user.has_value() && pass.has_value()) {
 				godot::UtilityFunctions::print("Found git credentials for remote. Username: " + *user + " Password: **** <censored>");
 				this->_set_credentials(*user, *pass, godot::String(), godot::String(), godot::String());
+				this->creds_from_git_cred_manager = true;
 			}
 		}
 	}

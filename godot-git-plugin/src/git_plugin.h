@@ -29,6 +29,9 @@ public:
 	git_oid pull_merge_oid = {};
 	godot::String repo_project_path;
 	std::unordered_map<git_status_t, ChangeType> map_changes;
+	// WoMa-Patch
+	bool creds_from_git_cred_manager = false;
+	// End WoMa-Patch
 
 	GitPlugin();
 
