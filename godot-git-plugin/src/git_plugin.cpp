@@ -6,6 +6,9 @@
 #include "godot_cpp/core/class_db.hpp"
 #include "godot_cpp/classes/file_access.hpp"
 #include "godot_cpp/variant/utility_functions.hpp"
+#include "process_helper.hpp"
+
+#include <optional>
 
 #define GIT2_CALL(error, msg)                                         \
 	if (check_errors(error, __FUNCTION__, __FILE__, __LINE__, msg)) { \
@@ -700,6 +703,43 @@ bool GitPlugin::_initialize(const godot::String &project_path) {
 		create_gitignore_and_gitattributes();
 	}
 
+	// WoMa Patch
+	godot::TypedArray<godot::String> remotes = this->_get_remotes();
+	if (remotes.size() > 0) {
+		// Found remote, try to fetch credentials
+		git_remote_ptr remote_object;
+		GIT2_CALL_R(git_remote_lookup(Capture(remote_object), repo.get(), CString(remotes[0]).data), "Could not lookup remote", true);
+		// Remote URL
+		std::string remote_url = std::string(git_remote_url(remote_object.get()));
+		godot::UtilityFunctions::print("Found remote at " + godot::String(remote_url.c_str()));
+		if (remote_url.compare(0, std::string("https://").length(), std::string("https://"))) { // is https
+			remote_url = remote_url.substr(std::string("https://").length());
+			remote_url = remote_url.substr(0, remote_url.find("/"));
+			godot::UtilityFunctions::print("Remote Host is: " + godot::String(remote_url.c_str()));
+			std::string remote_credentials_string = std::string("protocol=https\nhost=") + remote_url + "\n";
+			std::vector<godot::String> args;
+			args.push_back(godot::String("credential"));
+			args.push_back(godot::String("fill"));
+			godot::String output = run_command(godot::String("git"), godot::String(remote_credentials_string.c_str()), args);
+			output = output.replace(godot::String("\r\n"), godot::String("\n")); // for Windows
+			godot::PackedStringArray lines = output.split(godot::String("\n"));
+			std::optional<godot::String> user;
+			std::optional<godot::String> pass;
+			for (int64_t i = 0; i < lines.size(); ++i) {
+				if (lines[i].begins_with(godot::String("username="))) {
+					user.emplace(lines[i].substr(godot::String("username=").length()));
+				}
+				if (lines[i].begins_with(godot::String("password="))) {
+					pass.emplace(lines[i].substr(godot::String("password=").length()));
+				}
+			}
+			if (user.has_value() && pass.has_value()) {
+				godot::UtilityFunctions::print("Found git credentials for remote. Username: " + *user + " Password: **** <censored>");
+				this->_set_credentials(*user, *pass, godot::String(), godot::String(), godot::String());
+			}
+		}
+	}
+	// WoMa Patch End
 	return true;
 }
 
