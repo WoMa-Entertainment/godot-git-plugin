@@ -85,8 +85,8 @@ godot::String run_command(const godot::String &cmd_file, const godot::String &st
 	startupInfo.hStdOutput = stdoutWriteHandle;
 	startupInfo.hStdInput = stdinReadHandle;
 	startupInfo.dwFlags |= STARTF_USESTDHANDLES;
-	
-	if (!CreateProcessW(nullptr, (LPWSTR) (command.wide_string().get_data()), nullptr, nullptr, true,
+
+	if (!CreateProcessW(nullptr, (LPWSTR)(command.wide_string().get_data()), nullptr, nullptr, true,
 				NORMAL_PRIORITY_CLASS | CREATE_NO_WINDOW | CREATE_UNICODE_ENVIRONMENT, nullptr, nullptr, &startupInfo, &processInfo)) {
 		printf("CreateProcessW: %u\n", GetLastError());
 		return godot::String{};
