@@ -137,6 +137,7 @@ godot::String run_command(const godot::String &cmd_file, const godot::String &st
 #else
 
 #include <unistd.h>
+#include <sys/wait.h>
 
 godot::String run_command(const godot::String &cmd_file, const godot::String &stdin_values, const std::vector<godot::String> &args) {
 	int parentToChild[2];

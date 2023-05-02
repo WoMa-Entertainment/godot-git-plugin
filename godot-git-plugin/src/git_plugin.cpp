@@ -74,14 +74,16 @@ bool GitPlugin::check_errors(int error, godot::String function, godot::String fi
 }
 
 void GitPlugin::_set_credentials(const godot::String &username, const godot::String &password, const godot::String &ssh_public_key_path, const godot::String &ssh_private_key_path, const godot::String &ssh_passphrase) {
-	if (this->creds_from_git_cred_manager && creds.username.nocasecmp_to(username) == 0 && creds.password.is_empty() && !password.is_empty()) {
+	if (this->creds_from_git_cred_manager && (creds.username.nocasecmp_to(username) == 0 || username.is_empty()) && !creds.password.is_empty() && password.is_empty()) {
 		// just reset status, do nothing to overwrite credentials
+		godot::UtilityFunctions::print("Set git credentials, but did not delete them, as they were fetched from the credential manager");
 	} else {
 		creds.username = username;
 		creds.password = password;
 		creds.ssh_public_key_path = ssh_public_key_path;
 		creds.ssh_private_key_path = ssh_private_key_path;
 		creds.ssh_passphrase = ssh_passphrase;
+		godot::UtilityFunctions::print("Set git credentials to username: " + creds.username + " Password: **** <censored>");
 	}
 	this->creds_from_git_cred_manager = false;
 }
