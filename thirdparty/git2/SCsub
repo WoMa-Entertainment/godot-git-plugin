@@ -8,16 +8,15 @@ env_git = env.Clone()
 
 # Thirdparty source files.
 libgit2_sources = []
-libgit2_sources += Glob("libgit2/src/" + "*.c")
-libgit2_sources += Glob("libgit2/src/allocators/" + "*.c")
-libgit2_sources += Glob("libgit2/src/hash/sha1/sha1dc/sha1.c")
-libgit2_sources += Glob("libgit2/src/hash/sha1/sha1dc/ubc_check.c")
-libgit2_sources += Glob("libgit2/src/hash/sha1/collisiondetect.c")
-libgit2_sources += Glob("libgit2/src/transports/" + "*.c")
-libgit2_sources += Glob("libgit2/src/hash/transports/" + "*.c")
-libgit2_sources += Glob("libgit2/src/hash/xdiff/" + "*.c")
-libgit2_sources += Glob("libgit2/src/xdiff/" + "*.c")
-libgit2_sources += Glob("libgit2/src/streams/" + "*.c")
+libgit2_sources += Glob("libgit2/src/libgit2/" + "*.c")
+libgit2_sources += Glob("libgit2/src/libgit2/streams/" + "*.c")
+libgit2_sources += Glob("libgit2/src/libgit2/transports/" + "*.c")
+libgit2_sources += Glob("libgit2/src/libgit2/xdiff/" + "*.c")
+
+libgit2_sources += Glob("libgit2/src/util/allocators/" + "*.c")
+libgit2_sources += Glob("libgit2/src/util/hash/" + "*.c")
+libgit2_sources += Glob("libgit2/src/util/hash/sha1dc/" + "*.c")
+libgit2_sources += Glob("libgit2/src/util/hash/rfc6234/" + "*.c")
 
 libgit2_sources += Glob("libgit2/deps/http-parser/" + "*.c")
 libgit2_sources += Glob("libgit2/deps/pcre/" + "*.c")
@@ -31,7 +30,8 @@ else:
 env_git.Prepend(
     CPPPATH=[
         "libgit2/include/",
-        "libgit2/src/",
+        "libgit2/src/libgit2/",
+        "libgit2/src/util/",
         "libgit2/deps/http-parser/",
         "libgit2/deps/pcre/",
         "libgit2/deps/zlib/",
@@ -47,6 +47,7 @@ env_git.Prepend(
         "GIT_SSH_MEMORY_CREDENTIALS",
         "LIBGIT2_NO_FEATURES_H",
         "GIT_SHA1_COLLISIONDETECT",
+        "GIT_SHA256_BUILTIN",
         "GIT_HTTPS",
         "SRC_UTIL_H_",
         "GIT_REGEX_BUILTIN",
@@ -54,7 +55,7 @@ env_git.Prepend(
 )
 
 if env_git["platform"] == "windows":
-    libgit2_sources += Glob("libgit2/src/win32/" + "*.c")
+    libgit2_sources += Glob("libgit2/src/util/win32/" + "*.c")
     env_git.Prepend(
         CPPDEFINES=[
             "GIT_WINHTTP",
@@ -87,7 +88,7 @@ if env_git["platform"] == "windows":
 
 if env_git["platform"] in ["linux", "macos"]:
     env_git.Append(CCFLAGS="-fPIC")
-    libgit2_sources += Glob("libgit2/src/unix/" + "*.c")
+    libgit2_sources += Glob("libgit2/src/util/unix/" + "*.c")
     libgit2_sources += [
         "libgit2/deps/ntlmclient/crypt_openssl.c",
         "libgit2/deps/ntlmclient/unicode_builtin.c"
